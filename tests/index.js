@@ -24,9 +24,9 @@ const name = str2ab('World')
 const greet = ab2str(stringinout_utf8(name))
 assert.strictEqual(greet, 'Hello World')
 
+// host function to say hello, whcih will be exposed to wasm
 globalThis.hello = n => {
   const name = ab2str(n)
-  console.log('from ASM to JS:', name)
   return str2ab(`Hello ${name}`)
 }
 

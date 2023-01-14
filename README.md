@@ -11,9 +11,9 @@ npm run asbuild:debug
 # run JS-host tests
 npm test
 
-# build c host tester
+# build c host tester: you will need cmake/make
 npm run chost
 
-# run C-host tester
+# run C-host tests
 ./chost/build/chost ./build/debug.wasm
 ```

@@ -24,5 +24,4 @@ declare function hello_host(url: ArrayBuffer): ArrayBuffer
 // entry point for the host to triger calling hello(name: string): string
 export function host_entry():void {
   const greet:string = String.UTF8.decode(hello_host(String.UTF8.encode(`ASM`, true)), true)
-  trace('Got this from JS, in ASM: ' + greet)
 }

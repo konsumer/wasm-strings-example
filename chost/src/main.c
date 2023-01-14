@@ -15,7 +15,7 @@ static void null0_check_wasm3_is_ok () {
   M3ErrorInfo error;
   m3_GetErrorInfo(runtime, &error);
   if (error.result) {
-    fprintf(stderr, "%s - %s", error.result, error.message);
+    fprintf(stderr, "%s - %s\n", error.result, error.message);
     exit(1);
   }
 }
@@ -36,7 +36,7 @@ static m3ApiRawFunction (hello) {
   char* response;
   sprintf(response, "Hello %s", name);
 
-  printf(response, "send to ASM: Hello %s", name);
+  printf(response, "send to ASM: Hello %s\n", name);
 
   m3ApiReturn(response);
   m3ApiSuccess();
@@ -49,6 +49,13 @@ static m3ApiRawFunction (null0_abort) {
   m3ApiGetArg(uint16_t, lineNumber);
   m3ApiGetArg(uint16_t, columnNumber);
   fprintf(stderr, "%s at %s:%d:%d\n", message, fileName, lineNumber, columnNumber);
+  m3ApiSuccess();
+}
+
+// Log a string
+static m3ApiRawFunction (null0_log) {
+  m3ApiGetArgMem(const char*, message);
+  printf("%s\n", message);
   m3ApiSuccess();
 }
 
@@ -72,10 +79,9 @@ int main (int argc, char **argv) {
   null0_check_wasm3(m3_ParseModule (env, &module, (const unsigned char *)wasmBuffer, size));
   null0_check_wasm3(m3_LoadModule(runtime, module));
 
-  // these are assemblyscript-isms that are useful eslewhere
+  // expose these to wasm
   m3_LinkRawFunction(module, "env", "abort", "v(iiii)", &null0_abort);
-
-  // expose `hello(name: string): string` to wasm
+  m3_LinkRawFunction(module, "env", "null0_log", "v(i)", &null0_log);
   m3_LinkRawFunction(module, "env", "hello", "i(i)", &hello);
 
   null0_check_wasm3_is_ok();
@@ -88,7 +94,7 @@ int main (int argc, char **argv) {
   if (host_entry) {
     null0_check_wasm3(m3_CallV(host_entry));
   } else {
-    fprintf(stderr, "error in host_entry() in cart.\n");
+    fprintf(stderr, "error in host_entry() in cart:\n");
     null0_check_wasm3_is_ok();
     return 1;
   }

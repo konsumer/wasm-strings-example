@@ -30,6 +30,10 @@ globalThis.hello = n => {
   return str2ab(`Hello ${name}`)
 }
 
+globalThis.null0_log = m => {
+  console.log('Log from WASM: ', ab2str(m))
+}
+
 // this will trigger the wasm to call env.hello
 host_entry()
 

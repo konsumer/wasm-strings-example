@@ -76,7 +76,7 @@ int main (int argc, char **argv) {
   m3_LinkRawFunction(module, "env", "abort", "v(iiii)", &null0_abort);
 
   // expose `hello(name: string): string` to wasm
-  m3_LinkRawFunction(module, "env", "hello", "i(i)", &hello);
+  m3_LinkRawFunction(module, "env", "hello_host", "i(i)", &hello);
 
   null0_check_wasm3_is_ok();
 

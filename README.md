@@ -75,6 +75,8 @@ npm run test:c build/aswasm.wasm
 
 ## C WASM
 
+This is essentiually the same WASM, written in C.
+
 ```
 # build the assemblyscript-based wasm
 npm run build:cwasm

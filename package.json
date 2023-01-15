@@ -8,7 +8,7 @@
     "test:js": "node test/test.js",
     "test:c": "./chost/build/chost",
 
-    "build:aswasm": "asc aswasm/index.ts -o build/aswasm.wasm --optimize --runtime stub --exportRuntime --stats",
+    "build:aswasm": "asc aswasm/index.ts -o build/aswasm.wasm --optimize --exportRuntime --stats --bindings esm",
     "build:chost": "cd chost && cmake -B build . && make -C build",
     "build:cwasm": "clang --target=wasm32 -emit-llvm -c -S cwasm/main.c -o build/cwasm.ll && llc -march=wasm32 -filetype=obj build/cwasm.ll -o build/cwasm.o && wasm-ld --no-entry --export-all -o build/cwasm.wasm build/cwasm.o"
   }

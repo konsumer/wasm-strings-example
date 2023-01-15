@@ -1,5 +1,7 @@
 This is a small example of passing strings back and forth over WASM, in a wasm3/js host. Since I need to support multiple wasm languages, the strings should be in a single format, and here I am exploring some differnt options.
 
+Currently, I am doing a terrible thing where the host is holdng the last string return (with `set_buffer`) for the runtime, because I couldn't work out how to return a string pointer that worked in multiple hosts, in C.
+
 ## requirements
 
 Before you get started, you will need some tools installed on your system.
@@ -17,34 +19,6 @@ brew link --force llvm
 ```
 
 Now, in the project-folder, run `npm i`
-
-
-## WASM Shape
-
-The basic shape of the functions exported and tested in both runtimes looks like this:
-
-## imports
-
-```ts
-// a simple string-logging function, so WASM can talk about what's going on
-null0_log(text: ArrayBuffer): void
-
-// host will define this, so it can check return value
-hello_host(url: ArrayBuffer): ArrayBuffer
-```
-
-### exports
-
-```ts
-// entry-point for the WASM-host to start things
-host_entry():void {}
-
-// UTF8, null-terminated strings in and out
-stringinout_utf8(n: ArrayBuffer) : ArrayBuffer {}
-
-// simple non-string tester to ensure host-linkage is working right
-add(a: i32, b: i32): i32 {}
-```
 
 ## chost
 

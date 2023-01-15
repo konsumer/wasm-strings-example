@@ -9,6 +9,8 @@ if (process.argv.length !== 3) {
   process.exit(1)
 }
 
+let stringBuffer
+
 const wasmBuffer = await readFile(process.argv[2])
 const wasmModule = await WebAssembly.instantiate(wasmBuffer, {
   env: {
@@ -24,6 +26,9 @@ const wasmModule = await WebAssembly.instantiate(wasmBuffer, {
 
     abort: (message, fileName, lineNumber, columnNumber) => {
 
+    },
+    set_buffer (b) {
+      stringBuffer = b
     }
   }
 })
@@ -49,9 +54,9 @@ function __lowerBuffer (value) {
 
 assert.strictEqual(add(1, 2), 3)
 
-const name = str2ab('World')
-const greet = ab2str(__liftBuffer(stringinout_utf8(__lowerBuffer(name))))
-assert.strictEqual(greet, 'Hello World')
+// this fails with big empty buffer
+stringinout_utf8(__lowerBuffer(str2ab('World')))
+assert.strictEqual(ab2str(stringBuffer), 'Hello World')
 
 host_entry()
 

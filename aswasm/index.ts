@@ -1,5 +1,10 @@
 // The entry file of your WebAssembly module.
 
+// HACK: there doesn't seem to be a good way to return an ArrayBuffer pointer in AS.
+@external("env", "set_buffer")
+declare function set_buffer(text: ArrayBuffer): void
+
+
 // log a string
 @external("env", "null0_log")
 declare function null0_log(text: ArrayBuffer): void
@@ -19,9 +24,9 @@ export function stringinout(name: string) : string {
 
 // this is UTF8 (null-terminated) wrapped, so it works like other languages, in the host
 // in my assemblyscript header, I would normally wrap this, so it uses string in/out (to make it easier to use)
-export function stringinout_utf8(n: ArrayBuffer) : ArrayBuffer {
+export function stringinout_utf8(n: ArrayBuffer) : void {
   const name = String.UTF8.decode(n, true)
-  return String.UTF8.encode(`Hello ${name}`, true)
+  set_buffer(String.UTF8.encode(`Hello ${name}`, true))
 }
 
 // host will define this, so it can check return value

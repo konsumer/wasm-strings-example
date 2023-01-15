@@ -4,13 +4,10 @@ import assert from 'assert'
 import { add, stringinout, stringinout_utf8, host_entry } from '../build/aswasm.js'
 import { str2ab, ab2str } from './strings.js'
 
-assert.strictEqual(add(1, 2), 3)
-
-assert.strictEqual(stringinout('World'), 'Hello World')
-
-const name = str2ab('World')
-const greet = ab2str(stringinout_utf8(name))
-assert.strictEqual(greet, 'Hello World')
+let buffer
+globalThis.set_buffer = b => {
+  buffer = b
+}
 
 // host function to say hello, whcih will be exposed to wasm
 globalThis.hello = n => {
@@ -21,6 +18,14 @@ globalThis.hello = n => {
 globalThis.null0_log = m => {
   console.log('Log from WASM: ', ab2str(m))
 }
+
+assert.strictEqual(add(1, 2), 3)
+
+assert.strictEqual(stringinout('World'), 'Hello World')
+
+const name = str2ab('World')
+stringinout_utf8(name)
+assert.strictEqual(ab2str(buffer), 'Hello World')
 
 // this will trigger the wasm to call env.hello
 host_entry()

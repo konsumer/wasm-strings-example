@@ -24,9 +24,11 @@ const wasmModule = await WebAssembly.instantiate(wasmBuffer, {
       console.log('Log from WASM: ', ab2str(__liftBuffer(m)))
     },
 
+    // not dealing with WTF16 strings here, this is just a stub to stop it from complaining
     abort: (message, fileName, lineNumber, columnNumber) => {
-
+      console.log('abort', lineNumber, columnNumber)
     },
+
     set_buffer (b) {
       stringBuffer = b
     }

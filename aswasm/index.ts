@@ -24,9 +24,16 @@ export function stringinout(name: string) : string {
 
 // this is UTF8 (null-terminated) wrapped, so it works like other languages, in the host
 // in my assemblyscript header, I would normally wrap this, so it uses string in/out (to make it easier to use)
-export function stringinout_utf8(n: ArrayBuffer) : void {
+// additionally, I am using the hacky set_buffer, because returning strings does not seem to work
+export function stringinout_utf8_callbackret(n: ArrayBuffer) : void {
   const name = String.UTF8.decode(n, true)
   set_buffer(String.UTF8.encode(`Hello ${name}`, true))
+}
+
+// this seems like the most straightforward way to support multiple hosts and WASM languages, but I can't seem to get it working.
+export function stringinout_utf8(n: ArrayBuffer) : ArrayBuffer {
+  const name = String.UTF8.decode(n, true)
+  return String.UTF8.encode(`Hello ${name}`, true)
 }
 
 // host will define this, so it can check return value

@@ -24,18 +24,18 @@ const wasmModule = await WebAssembly.instantiate(wasmBuffer, {
       console.log('Log from WASM: ', ab2str(__liftBuffer(m)))
     },
 
-    // not dealing with WTF16 strings here, this is just a stub to stop it from complaining
+    // not dealing with WTF16 strings here, this is just a stub to stop AS from complaining
     abort: (message, fileName, lineNumber, columnNumber) => {
       console.log('abort', lineNumber, columnNumber)
     },
 
     set_buffer (b) {
-      stringBuffer = b
+      stringBuffer = __liftBuffer(b)
     }
   }
 })
 
-const { memory, add, __new, stringinout_utf8, host_entry } = wasmModule.instance.exports
+const { memory, add, __new, stringinout_utf8, stringinout_utf8_callbackret, host_entry } = wasmModule.instance.exports
 
 // these came from the generated wrapper
 // In C, these are mostly handled automatically by the macros, but I will probly need to work out __new
@@ -54,12 +54,18 @@ function __lowerBuffer (value) {
 
 // tests start here
 
+// simple return test
 assert.strictEqual(add(1, 2), 3)
 
-// this fails with big empty buffer
-stringinout_utf8(__lowerBuffer(str2ab('World')))
+// jenky way to return strings
+stringinout_utf8_callbackret(__lowerBuffer(str2ab('World')))
 assert.strictEqual(ab2str(stringBuffer), 'Hello World')
 
+// more sensible way to return strings, but can't get it working in C-host
+const greet = stringinout_utf8(__lowerBuffer(str2ab('World')))
+assert.strictEqual(ab2str(__liftBuffer(greet)), 'Hello World')
+
+// trigger WASM to call into host
 host_entry()
 
 console.log('ok')

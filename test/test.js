@@ -31,7 +31,7 @@ const wasmModule = await WebAssembly.instantiate(wasmBuffer, {
 const { memory, add, __new, stringinout_utf8, host_entry } = wasmModule.instance.exports
 
 // these came from the generated wrapper
-// In C, these are handled automatically by the macros
+// In C, these are mostly handled automatically by the macros, but I will probly need to work out __new
 
 function __liftBuffer (pointer) {
   if (!pointer) return null

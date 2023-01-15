@@ -53,7 +53,6 @@ const name = str2ab('World')
 const greet = ab2str(__liftBuffer(stringinout_utf8(__lowerBuffer(name))))
 assert.strictEqual(greet, 'Hello World')
 
-// this causes 59565 bus error
 host_entry()
 
 console.log('ok')

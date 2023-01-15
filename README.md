@@ -11,7 +11,7 @@ Before you get started, you will need some tools installed on your system.
 
 On mac, with homebrew, I installed them like this:
 
-```sh
+```bash
 brew install cmake node llvm
 brew link --force llvm
 ```
@@ -50,7 +50,7 @@ add(a: i32, b: i32): i32 {}
 
 You can build this once, and use it for the all the WASM files to test C-host.
 
-```sh
+```bash
 # build c host tester: you will need cmake/make
 npm run build:chost
 ```
@@ -59,7 +59,7 @@ npm run build:chost
 
 Included is a simple example assemblyscript-made WASM that illustrates a couple ways to pass strings.
 
-```sh
+```bash
 # build the assemblyscript-based wasm
 npm run build:aswasm
 
@@ -77,7 +77,7 @@ npm run test:c build/aswasm.wasm
 
 This is essentiually the same WASM, written in C.
 
-```sh
+```bash
 # build the assemblyscript-based wasm
 npm run build:cwasm
 

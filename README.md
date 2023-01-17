@@ -3,11 +3,14 @@ This is a small example of passing strings back and forth over WASM, in a wasm3/
 ## basic use-cases
 
 - WASM -> HOST via param (`null0_log`)
-- WASM -> HOST via return (`test_string_retstring`)
-- HOST -> WASM via param (`test_string_param`)
 - HOST -> WASM via return (`test_string_get`)
 
+These are not working in C, but for my use-case, that is ok:
 
+- WASM -> HOST via return (`test_string_retstring`)
+- HOST -> WASM via param (`test_string_param`)
+
+I needd to figure out how to access the memory outside of HOST callbacks ('m3ApiOffsetToPtr' only works there.)
 
 ## requirements
 

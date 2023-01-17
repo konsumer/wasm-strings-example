@@ -1,5 +1,8 @@
 // this will load a wasm file and test a few things with it, similar to chost
 
+/* eslint-disable camelcase */
+/* global WebAssembly */
+
 import assert from 'assert'
 import { readFile } from 'fs/promises'
 import { str2ab, ab2str } from './strings.js'
@@ -9,8 +12,6 @@ if (process.argv.length !== 3) {
   process.exit(1)
 }
 const wasmFile = process.argv[2]
-
-let stringBuffer
 
 const wasmBuffer = await readFile(wasmFile)
 const wasmModule = await WebAssembly.instantiate(wasmBuffer, {
@@ -32,7 +33,7 @@ const wasmModule = await WebAssembly.instantiate(wasmBuffer, {
   }
 })
 
-const { memory, add, wmalloc, say_hello } = wasmModule.instance.exports
+const { memory, add, wmalloc, say_hello, test_string_retstring, test_string_param } = wasmModule.instance.exports
 
 // these loosely came from the generated wrapper
 // In C, these are mostly handled automatically by the macros, but I will need to work out wmalloc
@@ -58,5 +59,13 @@ console.log(`add worked: ${value}`)
 
 // trigger WASM to call into host
 say_hello()
+
+//  WASM -> HOST via return
+const v = ab2str(liftBuffer(test_string_retstring()))
+assert.strictEqual(v, 'Hi, from WASM')
+console.log('test_string_retstring:', v)
+
+// HOST -> WASM via param
+test_string_param(lowerBuffer(str2ab('JS Param')))
 
 console.log('ok')

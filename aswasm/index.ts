@@ -32,7 +32,6 @@ export function test_string_param(input: ArrayBuffer): void {
   log('test_string_param: ' + String.UTF8.decode(input))
 }
 
-
 // included in example, shows basic stuff works
 export function add(a: i32, b: i32): i32 {
   return a + b;

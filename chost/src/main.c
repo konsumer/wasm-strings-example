@@ -14,6 +14,8 @@ static M3Function* wmalloc;
 static M3Function* wfree;
 static M3Function* add;
 static M3Function* say_hello;
+static M3Function* test_string_retstring;
+static M3Function* test_string_param;
 
 
 // this checks the general state of the runtime, to make sure there are no errors lingering
@@ -54,12 +56,12 @@ static m3ApiRawFunction (null0_log) {
 static m3ApiRawFunction (test_string_get) {
   printf("test_string_get was called.\n");
   m3ApiReturnType (uint32_t);
-  uint32_t wPointer;
 
   // example of what you want to return
   char* buffer = "Hello from C host.";
 
   // lowerBuffer
+  uint32_t wPointer;
   size_t s = strlen(buffer) + 1;
   null0_check_wasm3(m3_CallV (wmalloc, s));
   m3_GetResultsV(wmalloc, &wPointer);
@@ -101,6 +103,8 @@ int main (int argc, char **argv) {
   m3_FindFunction(&wfree, runtime, "wfree");
   m3_FindFunction(&add, runtime, "add");
   m3_FindFunction(&say_hello, runtime, "say_hello");
+  m3_FindFunction(&test_string_retstring, runtime, "test_string_retstring");
+  m3_FindFunction(&test_string_param, runtime, "test_string_param");
 
   null0_check_wasm3_is_ok();
 
@@ -121,6 +125,14 @@ int main (int argc, char **argv) {
     fprintf(stderr, "say_hello not defined.\n");
     return 1;
   }
+  if (!test_string_retstring) {
+    fprintf(stderr, "test_string_retstring not defined.\n");
+    return 1;
+  }
+  if (!test_string_param) {
+    fprintf(stderr, "test_string_param not defined.\n");
+    return 1;
+  }
 
   // call add & get return-value
   null0_check_wasm3(m3_CallV(add, 1, 2));
@@ -131,6 +143,26 @@ int main (int argc, char **argv) {
 
   // call say_hello to trigger reaching back into host
   null0_check_wasm3(m3_CallV(say_hello));
+
+  uint32_t wPointer;
+  char* wBuffer;
+  size_t s;
+
+
+  // WASM -> HOST via return
+  // XXX: this is not working, yet. Need m3ApiOffsetToPtr outside of callback.
+  // null0_check_wasm3(m3_CallV(test_string_retstring));
+
+  // HOST -> WASM via param
+  // XXX: this is not working, yet. Need m3ApiOffsetToPtr outside of callback.
+  // char* testParam = "Hello from C host.";
+  // s = strlen(testParam) + 1;
+  // null0_check_wasm3(m3_CallV (wmalloc, s));
+  // m3_GetResultsV(wmalloc, &wPointer);
+  // wBuffer = m3ApiOffsetToPtr(wPointer);
+  // memcpy(wBuffer, testParam, s);
+  // null0_check_wasm3(m3_CallV(test_string_param, wPointer));
+  
  
   printf("ok\n");
   return 0;

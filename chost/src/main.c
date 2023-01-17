@@ -132,7 +132,7 @@ int main (int argc, char **argv) {
   printf("add worked: %d\n", value);
 
   // trigger the WASM to call into the host to get a string
-  null0_check_wasm3(m3_CallV (say_hello));
+  m3_CallV (say_hello);
   
  
   printf("ok\n");

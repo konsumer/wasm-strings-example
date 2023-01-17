@@ -17,11 +17,11 @@ const wasmModule = await WebAssembly.instantiate(wasmBuffer, {
   env: {
     // host function to say hello, whcih will be exposed to wasm
     test_string_get: () => {
-      return __lowerBuffer(str2ab('Hello from JS'))
+      return lowerBuffer(str2ab('Hello from JS'))
     },
 
     null0_log: m => {
-      console.log('Log from WASM: ', ab2str(__liftBuffer(m)))
+      console.log('Log from WASM: ', ab2str(liftBuffer(m)))
     },
 
     // not dealing with WTF16 strings here, this is just a stub to stop AS from complaining
@@ -31,19 +31,19 @@ const wasmModule = await WebAssembly.instantiate(wasmBuffer, {
   }
 })
 
-const { memory, add, __new, stringinout_utf8, stringinout_utf8_callbackret, say_hello } = wasmModule.instance.exports
+const { memory, add, wmalloc, say_hello } = wasmModule.instance.exports
 
-// these came from the generated wrapper
-// In C, these are mostly handled automatically by the macros, but I will probly need to work out __new
+// these loosely came from the generated wrapper
+// In C, these are mostly handled automatically by the macros, but I will need to work out wmalloc
 
-function __liftBuffer (pointer) {
+function liftBuffer (pointer) {
   if (!pointer) return null
   return memory.buffer.slice(pointer, pointer + new Uint32Array(memory.buffer)[pointer - 4 >>> 2])
 }
 
-function __lowerBuffer (value) {
+function lowerBuffer (value) {
   if (value == null) return 0
-  const pointer = __new(value.byteLength, 1) >>> 0
+  const pointer = wmalloc(value.byteLength) >>> 0
   new Uint8Array(memory.buffer).set(new Uint8Array(value), pointer)
   return pointer
 }

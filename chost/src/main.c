@@ -59,7 +59,7 @@ static m3ApiRawFunction (test_string_get) {
   char* buffer = "Hello from the host.";
 
   // lowerBuffer
-  size_t s = strlen(buffer);
+  size_t s = strlen(buffer) + 1;
   null0_check_wasm3(m3_CallV (wmalloc, s));
   m3_GetResultsV(wmalloc, &wPointer);
   char* wBuffer = m3ApiOffsetToPtr(wPointer);

@@ -1,6 +1,13 @@
 This is a small example of passing strings back and forth over WASM, in a wasm3/js host. Since I need to support multiple wasm languages, the strings should be in a single format, and here I am exploring some differnt options.
 
-Currently, I am doing a terrible thing where the host is holdng the last string return (with `set_buffer`) for the runtime, because I couldn't work out how to return a string pointer that worked in multiple hosts, in C.
+## basic use-cases
+
+- WASM -> HOST via param (`null0_log`)
+- WASM -> HOST via return (`test_string_retstring`)
+- HOST -> WASM via param (`test_string_param`)
+- HOST -> WASM via return (`test_string_get`)
+
+
 
 ## requirements
 

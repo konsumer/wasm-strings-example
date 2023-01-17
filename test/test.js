@@ -18,7 +18,7 @@ const wasmModule = await WebAssembly.instantiate(wasmBuffer, {
     // host function to say hello, whcih will be exposed to wasm
     test_string_get: () => {
       console.log('test_string_get was called.')
-      return lowerBuffer(str2ab('Hello from JS'))
+      return lowerBuffer(str2ab('Hello from JS host'))
     },
 
     null0_log: m => {

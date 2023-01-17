@@ -52,11 +52,12 @@ static m3ApiRawFunction (null0_log) {
 }
 
 static m3ApiRawFunction (test_string_get) {
+  printf("test_string_get was called.\n");
   m3ApiReturnType (uint32_t);
   uint32_t wPointer;
 
   // example of what you want to return
-  char* buffer = "Hello from the host.";
+  char* buffer = "Hello from C host.";
 
   // lowerBuffer
   size_t s = strlen(buffer) + 1;
@@ -103,22 +104,33 @@ int main (int argc, char **argv) {
 
   null0_check_wasm3_is_ok();
 
-  if (add) {
-    null0_check_wasm3(m3_CallV(add, 1, 2));
-  } else {
-    fprintf(stderr, "add not defined.\n");
+  // check exports
+  if (!wmalloc) {
+    fprintf(stderr, "wmalloc not defined.\n");
+    return 1;
   }
+  if (!wfree) {
+    fprintf(stderr, "wfree not defined.\n");
+    return 1;
+  }
+  if (!add) {
+    fprintf(stderr, "add not defined.\n");
+    return 1;
+  }
+  if (!say_hello) {
+    fprintf(stderr, "say_hello not defined.\n");
+    return 1;
+  }
+
+  // call add & get return-value
+  null0_check_wasm3(m3_CallV(add, 1, 2));
   int value;
   m3_GetResultsV(add, &value);
   assert(value == 3);
   printf("add worked: %d\n", value);
 
-
-  if (say_hello) {
-    null0_check_wasm3(m3_CallV(say_hello));
-  } else {
-    fprintf(stderr, "say_hello not defined.\n");
-  }
+  // call say_hello to trigger reaching back into host
+  null0_check_wasm3(m3_CallV(say_hello));
  
   printf("ok\n");
   return 0;

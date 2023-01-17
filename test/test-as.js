@@ -12,7 +12,7 @@ globalThis.set_buffer = b => {
 // host function to say hello, whcih will be exposed to wasm
 globalThis.test_string_get = () => {
   console.log('test_string_get was called.')
-  return str2ab('Hello from JS')
+  return str2ab('Hello from AS/JS host')
 }
 
 globalThis.null0_log = m => {

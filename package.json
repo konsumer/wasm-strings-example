@@ -1,17 +1,20 @@
 {
   "devDependencies": {
-    "assemblyscript": "^0.26.2"
+    "assemblyscript": "^0.26.2",
+    "npm-run-all": "^4.1.5"
   },
   "type": "module",
   "scripts": {
     "test:asjs": "node test/test-as.js",
-    "test:js": "node test/test.js",
-    "test:c": "./chost/build/chost",
+    "test:js": "node test/test.js build/aswasm.wasm",
+    "test:c": "./chost/build/chost build/aswasm.wasm",
+
+    "pretest:c": "run-p build:chost build:aswasm",
+    "pretest:js": "npm run build:aswasm",
+    "pretest:asjs": "npm run build:aswasm",
 
     "build:aswasm": "asc aswasm/index.ts -o build/aswasm.wasm --optimize --exportRuntime --stats --bindings esm",
     "build:chost": "cd chost && cmake -B build . && make -C build",
     "build:cwasm": "clang --target=wasm32 -emit-llvm -c -S cwasm/main.c -o build/cwasm.ll && llc -march=wasm32 -filetype=obj build/cwasm.ll -o build/cwasm.o && wasm-ld --no-entry --export-all -o build/cwasm.wasm build/cwasm.o"
   }
 }
-
-

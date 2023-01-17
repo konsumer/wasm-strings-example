@@ -9,10 +9,12 @@
 static M3Environment* env;
 static M3Runtime* runtime;
 static M3Module* module;
-static M3Function* __new;
-static M3Function* host_entry;
 static M3Function* add;
+static M3Function* wmalloc;
+static M3Function* wfree;
+static M3Function* say_hello;
 char* returnBuffer;
+
 
 // this checks the general state of the runtime, to make sure there are no errors lingering
 static void null0_check_wasm3_is_ok () {
@@ -32,26 +34,6 @@ static void null0_check_wasm3 (M3Result result) {
   }
 }
 
-static m3ApiRawFunction (set_buffer) {
-  m3ApiGetArgMem(char*, b);
-  returnBuffer = b;
-  m3ApiSuccess();
-}
-
-// this is exposed to wasm
-static m3ApiRawFunction (hello) {
-  m3ApiReturnType (char*);
-  m3ApiGetArgMem(const char*, name);
-
-  char* response;
-  sprintf(response, "Hello %s", name);
-
-  printf(response, "send to ASM: Hello %s\n", name);
-
-  m3ApiReturn(response);
-  m3ApiSuccess();
-}
-
 // Fatal error
 static m3ApiRawFunction (null0_abort) {
   m3ApiGetArgMem(const char*, message);
@@ -66,6 +48,27 @@ static m3ApiRawFunction (null0_abort) {
 static m3ApiRawFunction (null0_log) {
   m3ApiGetArgMem(const char*, message);
   printf("Log from WASM: %s\n", message);
+  m3ApiSuccess();
+}
+
+static m3ApiRawFunction (test_string_get) {
+  m3ApiReturnType (uint32_t);
+  uint32_t wPointer;
+
+  // example of what you want to return
+  char* buffer = "Hello from the host.";
+
+  // lowerBuffer
+  // size_t s = strlen(buffer);
+  // printf("length: %zu\ncalling wmalloc\n", s);
+  // null0_check_wasm3(m3_CallV (wmalloc, s));
+  // m3_GetResultsV(wmalloc, &wPointer);
+  // printf("wasm pointer for return: %d\n", wPointer);
+  // char* wBuffer = m3ApiOffsetToPtr(wPointer);
+  // memcpy(wBuffer, buffer, s);
+  // printf("buffer sent to wasm: %s\n", wBuffer);
+
+  m3ApiReturn(wPointer);
   m3ApiSuccess();
 }
 
@@ -90,17 +93,34 @@ int main (int argc, char **argv) {
   null0_check_wasm3(m3_LoadModule(runtime, module));
 
   // EXPORTS
-  m3_LinkRawFunction(module, "env", "set_buffer", "v(i)", &set_buffer);
   m3_LinkRawFunction(module, "env", "abort", "v(iiii)", &null0_abort);
   m3_LinkRawFunction(module, "env", "null0_log", "v(i)", &null0_log);
-  m3_LinkRawFunction(module, "env", "hello", "i(i)", &hello);
+  m3_LinkRawFunction(module, "env", "test_string_get", "i()",  &test_string_get);
+  
+
+  /* something like this might be good for interop:
+
+  (SuppressLookupFailure (m3_LinkRawFunction (module, env, "_debug",            "i(*i)",   &m3_libc_print)));
+  (SuppressLookupFailure (m3_LinkRawFunction (module, env, "_memset",           "*(*ii)",  &m3_libc_memset)));
+  (SuppressLookupFailure (m3_LinkRawFunction (module, env, "_memmove",          "*(**i)",  &m3_libc_memmove)));
+  (SuppressLookupFailure (m3_LinkRawFunction (module, env, "_memcpy",           "*(**i)",  &m3_libc_memmove))); // just alias of memmove
+  (SuppressLookupFailure (m3_LinkRawFunction (module, env, "_abort",            "v()",     &m3_libc_abort)));
+  (SuppressLookupFailure (m3_LinkRawFunction (module, env, "_exit",             "v(i)",    &m3_libc_exit)));
+  (SuppressLookupFailure (m3_LinkRawFunction (module, env, "clock_ms",          "i()",     &m3_libc_clock_ms)));
+  (SuppressLookupFailure (m3_LinkRawFunction (module, env, "printf",            "i(**)",   &m3_libc_printf)));
+
+  and maybe also add the assemblyscript functions as aliases (trace -> printf, abort -> _abort, etc)
+
+  */
 
   null0_check_wasm3_is_ok();
 
   // IMPORTS
-  m3_FindFunction(&__new, runtime, "__new");
-  m3_FindFunction(&host_entry, runtime, "host_entry");
+  m3_FindFunction(&wmalloc, runtime, "wmalloc");
+  m3_FindFunction(&wfree, runtime, "wfree");
+
   m3_FindFunction(&add, runtime, "add");
+  m3_FindFunction(&say_hello, runtime, "say_hello");
 
   null0_check_wasm3_is_ok();
 
@@ -109,9 +129,11 @@ int main (int argc, char **argv) {
   int value = 0;
   null0_check_wasm3(m3_GetResultsV(add, &value));
   assert(value == 3);
+  printf("add worked: %d\n", value);
 
-  // trigger WASM to call back into host
-  m3_CallV(host_entry);
+  // trigger the WASM to call into the host to get a string
+  null0_check_wasm3(m3_CallV (say_hello));
+  
  
   printf("ok\n");
   return 0;

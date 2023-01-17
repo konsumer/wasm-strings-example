@@ -1,9 +1,18 @@
 // The entry file of your WebAssembly module.
 
-// HACK: there doesn't seem to be a good way to return an ArrayBuffer pointer in AS.
-@external("env", "set_buffer")
-declare function set_buffer(text: ArrayBuffer): void
+// malloc for ArrayBuffer
+export function wmalloc(size: usize): usize {
+  return __pin(__new(size, 1))
+}
 
+// free an ArrayBuffer
+export function wfree(ptr: usize): void {
+  __unpin(ptr)
+}
+
+// get a string from the host
+@external("env", "test_string_get")
+declare function test_string_get(): ArrayBuffer
 
 // log a string
 @external("env", "null0_log")
@@ -17,31 +26,8 @@ export function add(a: i32, b: i32): i32 {
   return a + b;
 }
 
-// gets string from host, returns string to host, this only works with correct host-side processing
-export function stringinout(name: string) : string {
-  return `Hello ${name}`
-}
-
-// this is UTF8 (null-terminated) wrapped, so it works like other languages, in the host
-// in my assemblyscript header, I would normally wrap this, so it uses string in/out (to make it easier to use)
-// additionally, I am using the hacky set_buffer, because returning strings does not seem to work
-export function stringinout_utf8_callbackret(n: ArrayBuffer) : void {
-  const name = String.UTF8.decode(n, true)
-  set_buffer(String.UTF8.encode(`Hello ${name}`, true))
-}
-
-// this seems like the most straightforward way to support multiple hosts and WASM languages, but I can't seem to get it working.
-export function stringinout_utf8(n: ArrayBuffer) : ArrayBuffer {
-  const name = String.UTF8.decode(n, true)
-  return String.UTF8.encode(`Hello ${name}`, true)
-}
-
-// host will define this, so it can check return value
-@external("env", "hello")
-declare function hello_host(url: ArrayBuffer): ArrayBuffer
-
-// entry point for the host to triger calling hello(name: string): string
-export function host_entry():void {
-  const greet:string = String.UTF8.decode(hello_host(String.UTF8.encode(`ASM`, true)), true)
-  log('(WASM) Host said: ' + greet);
+// call into host, get a string, then log it (sending string to host)
+export function say_hello(): void {
+  log('testing log in wasm')
+  log(String.UTF8.decode(test_string_get()))
 }

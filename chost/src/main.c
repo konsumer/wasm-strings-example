@@ -58,7 +58,7 @@ static m3ApiRawFunction (test_string_get) {
   m3ApiReturnType (uint32_t);
 
   // example of what you want to return
-  char* buffer = "Hello from C host.";
+  char* buffer = "Hello from C host (test_string_get)";
 
   // lowerBuffer
   uint32_t wPointer;
@@ -144,25 +144,9 @@ int main (int argc, char **argv) {
   // call say_hello to trigger reaching back into host
   null0_check_wasm3(m3_CallV(say_hello));
 
-  uint32_t wPointer;
-  char* wBuffer;
-  size_t s;
-
-
-  // WASM -> HOST via return
-  // XXX: this is not working, yet. Need m3ApiOffsetToPtr outside of callback.
-  // null0_check_wasm3(m3_CallV(test_string_retstring));
-
-  // HOST -> WASM via param
-  // XXX: this is not working, yet. Need m3ApiOffsetToPtr outside of callback.
-  // char* testParam = "Hello from C host.";
-  // s = strlen(testParam) + 1;
-  // null0_check_wasm3(m3_CallV (wmalloc, s));
-  // m3_GetResultsV(wmalloc, &wPointer);
-  // wBuffer = m3ApiOffsetToPtr(wPointer);
-  // memcpy(wBuffer, testParam, s);
-  // null0_check_wasm3(m3_CallV(test_string_param, wPointer));
-  
+  // TODO: no reliable way to get _mem here, that I can see
+  // WASM -> HOST via return - test_string_retstring
+  // HOST -> WASM via param - test_string_param
  
   printf("ok\n");
   return 0;

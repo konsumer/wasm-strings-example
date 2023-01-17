@@ -9,11 +9,11 @@
 static M3Environment* env;
 static M3Runtime* runtime;
 static M3Module* module;
-static M3Function* add;
+
 static M3Function* wmalloc;
 static M3Function* wfree;
+static M3Function* add;
 static M3Function* say_hello;
-char* returnBuffer;
 
 
 // this checks the general state of the runtime, to make sure there are no errors lingering
@@ -59,14 +59,11 @@ static m3ApiRawFunction (test_string_get) {
   char* buffer = "Hello from the host.";
 
   // lowerBuffer
-  // size_t s = strlen(buffer);
-  // printf("length: %zu\ncalling wmalloc\n", s);
-  // null0_check_wasm3(m3_CallV (wmalloc, s));
-  // m3_GetResultsV(wmalloc, &wPointer);
-  // printf("wasm pointer for return: %d\n", wPointer);
-  // char* wBuffer = m3ApiOffsetToPtr(wPointer);
-  // memcpy(wBuffer, buffer, s);
-  // printf("buffer sent to wasm: %s\n", wBuffer);
+  size_t s = strlen(buffer);
+  null0_check_wasm3(m3_CallV (wmalloc, s));
+  m3_GetResultsV(wmalloc, &wPointer);
+  char* wBuffer = m3ApiOffsetToPtr(wPointer);
+  memcpy(wBuffer, buffer, s);
 
   m3ApiReturn(wPointer);
   m3ApiSuccess();
@@ -86,54 +83,42 @@ int main (int argc, char **argv) {
   unsigned char wasmBuffer[size];
   fread(wasmBuffer, sizeof(wasmBuffer), 1, pFile);
 
-  // load the wasm file
   env = m3_NewEnvironment();
-  runtime = m3_NewRuntime (env, 1024, NULL);
-  null0_check_wasm3(m3_ParseModule (env, &module, (const unsigned char *)wasmBuffer, size));
+  runtime = m3_NewRuntime (env, 1024 * 1024, NULL);
+  null0_check_wasm3(m3_ParseModule (env, &module, wasmBuffer, size));
   null0_check_wasm3(m3_LoadModule(runtime, module));
 
-  // EXPORTS
-  m3_LinkRawFunction(module, "env", "abort", "v(iiii)", &null0_abort);
+  // IMPORTS
   m3_LinkRawFunction(module, "env", "null0_log", "v(i)", &null0_log);
-  m3_LinkRawFunction(module, "env", "test_string_get", "i()",  &test_string_get);
-  
-
-  /* something like this might be good for interop:
-
-  (SuppressLookupFailure (m3_LinkRawFunction (module, env, "_debug",            "i(*i)",   &m3_libc_print)));
-  (SuppressLookupFailure (m3_LinkRawFunction (module, env, "_memset",           "*(*ii)",  &m3_libc_memset)));
-  (SuppressLookupFailure (m3_LinkRawFunction (module, env, "_memmove",          "*(**i)",  &m3_libc_memmove)));
-  (SuppressLookupFailure (m3_LinkRawFunction (module, env, "_memcpy",           "*(**i)",  &m3_libc_memmove))); // just alias of memmove
-  (SuppressLookupFailure (m3_LinkRawFunction (module, env, "_abort",            "v()",     &m3_libc_abort)));
-  (SuppressLookupFailure (m3_LinkRawFunction (module, env, "_exit",             "v(i)",    &m3_libc_exit)));
-  (SuppressLookupFailure (m3_LinkRawFunction (module, env, "clock_ms",          "i()",     &m3_libc_clock_ms)));
-  (SuppressLookupFailure (m3_LinkRawFunction (module, env, "printf",            "i(**)",   &m3_libc_printf)));
-
-  and maybe also add the assemblyscript functions as aliases (trace -> printf, abort -> _abort, etc)
-
-  */
+  m3_LinkRawFunction(module, "env", "abort", "v(iiii)", &null0_abort);
+  m3_LinkRawFunction(module, "env", "test_string_get", "*()", &test_string_get);
 
   null0_check_wasm3_is_ok();
 
-  // IMPORTS
+  // EXPORTS
   m3_FindFunction(&wmalloc, runtime, "wmalloc");
   m3_FindFunction(&wfree, runtime, "wfree");
-
   m3_FindFunction(&add, runtime, "add");
   m3_FindFunction(&say_hello, runtime, "say_hello");
 
   null0_check_wasm3_is_ok();
 
-  // simple return test
-  null0_check_wasm3(m3_CallV (add, 1, 2));
-  int value = 0;
-  null0_check_wasm3(m3_GetResultsV(add, &value));
+  if (add) {
+    null0_check_wasm3(m3_CallV(add, 1, 2));
+  } else {
+    fprintf(stderr, "add not defined.\n");
+  }
+  int value;
+  m3_GetResultsV(add, &value);
   assert(value == 3);
   printf("add worked: %d\n", value);
 
-  // trigger the WASM to call into the host to get a string
-  m3_CallV (say_hello);
-  
+
+  if (say_hello) {
+    null0_check_wasm3(m3_CallV(say_hello));
+  } else {
+    fprintf(stderr, "say_hello not defined.\n");
+  }
  
   printf("ok\n");
   return 0;

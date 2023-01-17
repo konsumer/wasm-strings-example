@@ -23,6 +23,7 @@ export function log(text: string): void {
 
 // included in example, shows basic stuff works
 export function add(a: i32, b: i32): i32 {
+  log("add called.");
   return a + b;
 }
 
